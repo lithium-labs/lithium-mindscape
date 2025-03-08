@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Lithium Mindscape</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #13111C;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100vh;
+        }
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start; /* Align items to the left */
+            padding: 10px;
+            background: #1A1625;
+            border-bottom: 1px solid #2D2B55;
+            -webkit-app-region: drag;
+        }
+        .topbar h1 {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            font-size: 24px;
+            font-weight: 600;
+            color: #A599E9;
+            flex-grow: 1; /* Allow h1 to take available space */
+        }
+        .topbtn {
+            background: #00000000;
+            color: white;
+            border: 3px solid #7E57C2;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 10px; /* Add margin for spacing */
+            -webkit-app-region: no-drag;
+            transition: background 0.2s;
+        }
+        .topbtn:hover {
+            background: #7E57C2;
+        }
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        #code-panel {
+            min-width: 300px;
+            width: 550px;
+            background: #1E1E2E;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            border-right: 1px solid #2D2B55;
+            position: relative;
+            resize: horizontal;
+            overflow: hidden;
+        }
+        #code-panel::-webkit-resizer {
+            background-color: #7E57C2;
+            padding: 4px;
+        }
+        #code-panel-content {
+            padding: 20px;
+            height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #code-panel-content::-webkit-scrollbar {
+            display: none;
+        }
+        #code-panel-content {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .resize-handle {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #2D2B55;
+            cursor: ew-resize;
+            transition: background 0.2s;
+            z-index: 10;
+        }
+        .resize-handle:hover {
+            background: #7E57C2;
+        }
+        #code-container {
+            position: relative;
+            background: #13111C;
+            border: 1px solid #2D2B55;
+            border-radius: 4px;
+            overflow: hidden;
+            height: 100%;
+        }
+        #code-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: transparent;
+            caret-color: #A599E9;
+            border: none;
+            padding: 10px;
+            font-family: 'Consolas', monospace;
+            white-space: pre;
+            overflow: auto;
+            tab-size: 4;
+            z-index: 2;
+            font-size: 14px;
+            box-sizing: border-box;
+            line-height: 1.5;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            resize: vertical;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        #code-input::-webkit-scrollbar {
+            display: none;
+        }
+        #code-highlight {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 10px;
+            font-family: 'Consolas', monospace;
+            pointer-events: none;
+            overflow: auto;
+            box-sizing: border-box;
+            z-index: 1;
+            margin: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        #code-highlight::-webkit-scrollbar {
+            display: none;
+        }
+        #code-highlight pre {
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+            white-space: pre;
+            width: max-content;
+            min-width: 100%;
+        }
+        #code-highlight code {
+            background: transparent !important;
+            font-family: 'Consolas', monospace;
+            font-size: 14px;
+            display: block;
+            line-height: 1.5;
+            margin: 0;
+            padding: 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+        }
+        /* Syntax highlighting colors - Purple theme */
+        .token.comment { color: #B39DDB; }
+        .token.string { color: #E1BEE7; }
+        .token.number { color: #CE93D8; }
+        .token.keyword { color: #9575CD; }
+        .token.function { color: #7E57C2; }
+        .token.operator { color: #D1C4E9; }
+        .token.class-name { color: #B39DDB; }
+        .token.property { color: #9575CD; }
+        .token.punctuation { color: #D1C4E9; }
+        .token.plain { color: #D1C4E9; }
+        #visualization {
+            flex-grow: 1;
+            height: 100%;
+            position: relative;
+            background: #13111C;
+        }
+        #visualization canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+        .info-panel {
+            position: fixed;
+            top: 70px;
+            right: 10px;
+            background: rgba(30, 30, 46, 0.9);
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            border: 1px solid #2D2B55;
+        }
+        .info-panel h2 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #A599E9;
+        }
+        .tooltip {
+            position: absolute;
+            background: rgba(30, 30, 46, 0.9);
+            color: #D1C4E9;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            border: 1px solid #2D2B55;
+        }
+        .control-panel {
+            position: absolute;
+            top: 10px;
+            right: 170px;
+            background: rgba(30, 30, 46, 0.9); /* Dark purple background */
+            padding: 15px;
+            border-radius: 8px;
+            z-index: 1000;
+            border: 1px solid #2D2B55; /* Purple border */
+            color: #D1C4E9; /* Light purple text */
+            font-family: 'Inter', sans-serif;
+        }
+        .control-panel label {
+            font-size: 14px;
+            margin-right: 10px;
+        }
+        .slider {
+            width: 150px;
+            background: #2D2B55; /* Purple track */
+            -webkit-appearance: none;
+            appearance: none;
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+        .slider:hover {
+            opacity: 1;
+        }
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #7E57C2; /* Purple thumb */
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .slider::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #7E57C2; /* Purple thumb */
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #repulsionValue {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #A599E9; /* Light purple */
+        }
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        .slider-container:last-child {
+            margin-bottom: 0;
+        }
+        
+        #nodeTooltip {
+            position: fixed;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 1000;
+            max-width: 300px;
+            backdrop-filter: blur(2px);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tooltip-type {
+            color: #00ff9d;
+            font-size: 0.8em;
+            margin-top: 4px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .tooltip-detail {
+            color: #888;
+            font-size: 0.8em;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1>Lithium Mindscape</h1>
+        <button class="topbtn" id="save-btn" onclick="saveCode()">Save Code</button>
+        <button class="topbtn" id="load-btn" onclick="loadCode()">Load Code</button>
+        <button class="topbtn" id="analyze-btn">Analyze Code</button>
+    </div>
+    <div class="main-content">
+        <div id="code-panel">
+            <div class="resize-handle"></div>
+            <div id="code-panel-content">
+                <div id="code-container">
+                    <textarea id="code-input" placeholder="Paste your Node.js code here..." spellcheck="false"></textarea>
+                    <div id="code-highlight">
+                        <pre><code class="language-javascript"></code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="visualization">
+            <div class="info-panel">
+                <h2>Code Structure</h2>
+                <p>Functions: <span id="functionCount">0</span></p>
+                <p>Variables: <span id="variableCount">0</span></p>
+                <p>Imports: <span id="importCount">0</span></p>
+            </div>
+
+            <div class="control-panel">
+                <div class="slider-container">
+                    <label for="repulsionRange">Repulsion Range:</label>
+                    <input type="range" id="repulsionRange" class="slider" min="1" max="10" step="0.1" value="2.5">
+                    <span id="repulsionValue">2.5</span>
+                </div>
+                <div class="slider-container">
+                    <label for="nodeSizeRange">Node Size:</label>
+                    <input type="range" id="nodeSizeRange" class="slider" min="0.5" max="3" step="0.1" value="1">
+                    <span id="nodeSizeValue">1</span>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    <div class="tooltip" id="nodeTooltip"></div>
+
+    <script type="text/javascript" src="../node_modules/three/build/three.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/three@0.137.0/examples/js/controls/OrbitControls.js"></script>
+    <script type="text/javascript" src="../node_modules/d3/dist/d3.min.js"></script>
+    <script type="text/javascript" src="../node_modules/esprima/dist/esprima.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/prism.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.24.1/components/prism-javascript.min.js"></script>
+    <script type="text/javascript" src="visualization.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+</body>
+</html> 
